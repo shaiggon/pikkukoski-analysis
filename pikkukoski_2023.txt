@@ -1,0 +1,11 @@
+1.6.2023 Hyvä/bra/good 14,6 8 12 0 0
+14.6.2023 Hyvä/bra/good 18,4 35 15 0 0
+19.6.2023 Hyvä/bra/good 21,8 60 17 0 0
+3.7.2023 Huono/dålig/poor 18,6 520 520 1 0
+5.7.2023 Hyvä/bra/good 20,4 62 56 0 0
+10.7.2023 Huono/dålig/poor 18 480 220 0 0
+12.7.2023 Hyvä/bra/good 21,1 70 30 0 0
+13.7.2023 Hyvä/bra/good 19,2 27 49 0 0
+24.7.2023 Hyvä/bra/good 19,2 15 12 0 0
+8.8.2023 Hyvä/bra/good 19,9 50 64 0 0
+21.8.2023 Hyvä/bra/good 20,4 18 31 0 0
