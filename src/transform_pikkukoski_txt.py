@@ -44,8 +44,8 @@ def process_file(pikkukoski_filename: str):
   print(f"Saved pikkukoski water quality to file ${csv_filename}")
 
 def main():
-  process_file("pikkukoski_2023.txt")
-  process_file("pikkukoski_2024.txt")
+  process_file("../data/pikkukoski_2023.txt")
+  process_file("../data/pikkukoski_2024.txt")
 
 if __name__ == "__main__":
   main()

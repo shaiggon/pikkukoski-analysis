@@ -27,7 +27,7 @@ def resample_weather_data(weather_df: pd.DataFrame, resample_rate: str) -> pd.Da
 
 
 def main():
-  df = read_weather_data("Helsinki Kumpula_ 25.5.2023 - 30.8.2023_d6f3d181-df41-42ba-b2eb-77d9b687db9d.csv")
+  df = read_weather_data("../data/Helsinki Kumpula_ 25.5.2023 - 30.8.2023_d6f3d181-df41-42ba-b2eb-77d9b687db9d.csv")
   print(df)
 
 if __name__ == "__main__":
