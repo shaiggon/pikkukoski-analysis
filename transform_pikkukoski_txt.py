@@ -10,7 +10,10 @@ and have the ", lisänäyte" or ", uusinta" removed. These txt files are created
 We want to make these into a more standard format (csv)
 """
 
-def parse_line(line):
+def parse_line(line: str) -> list:
+  """
+  Parse one line of the txt file
+  """
   parts = line.split()
   date_str = parts[0]
   date = datetime.strptime(date_str, '%d.%m.%Y')
@@ -22,7 +25,10 @@ def parse_line(line):
   other_observations = int(parts[6])
   return [date, quality, temperature, enterococci, ecoli, blue_green_algae, other_observations]
 
-def process_file(pikkukoski_filename):
+def process_file(pikkukoski_filename: str):
+  """
+  Process a txt file copied from a pdf to a more standard csv
+  """
   with open(pikkukoski_filename, "r") as pkf:
     lines = pkf.readlines()
   data = [parse_line(line) for line in lines]
