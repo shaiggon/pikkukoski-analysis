@@ -8,6 +8,8 @@ https://www.hel.fi/static/liitteet/kaupunkiymparisto/kulttuuri-ja-vapaa-aika/uim
 and have the ", lisänäyte" or ", uusinta" removed. These txt files are created manually.
 
 We want to make these into a more standard format (csv)
+
+The other beaches (tapaninvainio and pakila) follow the same convention
 """
 
 def parse_line(line: str) -> list:
@@ -38,14 +40,16 @@ def process_file(pikkukoski_filename: str):
 
   print(df)
 
-  csv_filename = pikkukoski_filename.split(".")[0] + ".csv"
+  csv_filename = pikkukoski_filename.split(".txt")[0] + ".csv"
   df.to_csv(csv_filename)
 
   print(f"Saved pikkukoski water quality to file ${csv_filename}")
 
 def main():
-  process_file("../data/pikkukoski_2023.txt")
-  process_file("../data/pikkukoski_2024.txt")
+  #process_file("../data/pikkukoski_2023.txt")
+  #process_file("../data/pikkukoski_2024.txt")
+  process_file("../data/tapaninvainio_2023.txt")
+  process_file("../data/pakila_2023.txt")
 
 if __name__ == "__main__":
   main()
