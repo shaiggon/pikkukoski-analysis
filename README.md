@@ -18,7 +18,7 @@ result of the real-time regression model as a web service.
 
 There are some reasons given by the
 [Helsinki outdoor website](https://www.hel.fi/fi/kulttuuri-ja-vapaa-aika/ulkoilu-puistot-ja-luontokohteet/uimarannat/uimaveden-laatu-ja-sinilevat).
-The reason for the pollution of the water during heavy rain is wastewater overflows (hulevesi).
+The biggest reason for the pollution of the water during heavy rain seems to be wastewater overflows (hulevesi).
 And because Pikkukoski is at the downstream of Vantaanjoki it is one of the most polluted of swimming beaches in Helsinki
 as all the bacteria and unwanted materials are pouring to the water all along the river.
 
@@ -26,7 +26,7 @@ The definition of bad water quality given by Helsinki for inland is that one of 
 * The amount of intestinal enterococci is over 400pmy/100ml
 * The amount of Escherichia coli is over 1000pmy/100ml
 
-The thresholds for coasts is lower (200pmy/100ml and 500pmy/100ml respectively).
+The thresholds for coasts are lower (200pmy/100ml and 500pmy/100ml respectively).
 
 There exists a [qualitative analysis of the swim water profile for Pikkukoski here](https://www.hel.fi/static/ymk/uimavedet/uimavesiprofiili-pikkukoski.pdf).
 It says that the definition for heavy rain is as such: 7mm/1h, 10mm/4h or 20mm/24h. However, it also describes how during
@@ -37,6 +37,9 @@ upstream even a week before might affect the water quality.
 
 The data for the water quality is in PDF and does not have exact information about the time of each measurement. The time resolution
 only reported per day, so the time of the measurement within a day is unknown.
+
+The measurement by Helsinki include the following data points: enterococci, E. coli, Blue-green algae, whether the quality is good or
+bad and other observations. The other observations at least for years 2023 and 2024 thus far seem to be empty for Pikkukoski.
 
 Here are the pdf links for [water quality in 2024](https://www.hel.fi/static/liitteet/kaupunkiymparisto/kulttuuri-ja-vapaa-aika/uimarannat/Uimavedenlaatu_2024.pdf),
 [water quality in 2023](https://www.hel.fi/static/liitteet/kaupunkiymparisto/kulttuuri-ja-vapaa-aika/uimarannat/Uimavedenlaatu_2023.pdf),
@@ -54,16 +57,13 @@ The data requires some processing to behave nicely so the loading for weather da
 For now I only got the temperature and the rain amount with the shortest possible time window for the summer of 2023 and
 2024.
 
-There were some missing data points from Helsinki-Vantaa lentoasema weather observations. Those were manually corrected to
+There were some missing data points from Helsinki-Vantaa lentoasema weather observations. Those were both manually and programmatically corrected to
 reflect the previous rain amount. The missing data points were at most for a duration of half an hour.
 
 In the beginning I'm only looking at weather data from the Kumpula weather station which is the closest station to Pikkukoski,
 but going forward I assume looking into all the stations near Vantaanjoki will be useful for the analysis as the rain situation
-upstream will affect water quality downstream.
+upstream will affect water quality downstream. It would be great to have historical rain radar information such that I could
+have spatially more granular data for the estimate of the amount of rain as any rain along the river affects the results.
 
-Then in `analysis.ipynb` I explore the relation of the rain and temperature compared to the different water quality measurements
+In `analysis.ipynb` I explore the relation of the rain and temperature compared to the different water quality measurements
 we get from Pikkukoski.
-
-The measurement by Helsinki include the following data points: enterococci, E. coli, Blue-green algae, whether the quality is good or
-bad and other observations. The other observations at least for years 2023 and 2024 thus far seem to be empty for Pikkukoski.
-
