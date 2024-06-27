@@ -1,0 +1,13 @@
+1.6.2021 Hyvä/bra/good 13,3 20 44 0 0
+15.6.2021 Hyvä/bra/good 18,2 340 88 0 0
+21.6.2021 Hyvä/bra/good 21,8 90 35 0 0
+24.6.2021 Huono/dålig/poor 20,7 720 1600 0 0
+30.6.2021 Hyvä/bra/good 22,6 210 61 0 0
+6.7.2021 Hyvä/bra/good 24,3 45 31 0 0
+13.7.2021 Hyvä/bra/good 22 21 23 0 0
+27.7.2021 Hyvä/bra/good 20,8 19 6 0 0
+30.7.2021 Hyvä/bra/good 20,8 100 110 0 0
+11.8.2021 Hyvä/bra/good 18 45 44 0 0
+18.8.2021 Huono/dålig/poor 16,9 880 1700 0 0
+20.8.2021 Huono/dålig/poor 16,1 800 1100 0 0
+23.8.2021 Hyvä/bra/good 14,7 120 74 0 0

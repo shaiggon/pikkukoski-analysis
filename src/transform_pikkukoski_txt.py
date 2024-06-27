@@ -48,8 +48,14 @@ def process_file(pikkukoski_filename: str):
 def main():
   #process_file("../data/pikkukoski_2023.txt")
   #process_file("../data/pikkukoski_2024.txt")
-  process_file("../data/tapaninvainio_2023.txt")
-  process_file("../data/pakila_2023.txt")
+  #process_file("../data/tapaninvainio_2023.txt")
+  #process_file("../data/pakila_2023.txt")
+  process_file("../data/pikkukoski_2021.txt")
+  process_file("../data/pikkukoski_2022.txt")
+  process_file("../data/tapaninvainio_2021.txt")
+  process_file("../data/tapaninvainio_2022.txt")
+  process_file("../data/pakila_2021.txt")
+  process_file("../data/pakila_2022.txt")
 
 if __name__ == "__main__":
   main()
