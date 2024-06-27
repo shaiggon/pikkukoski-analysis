@@ -67,3 +67,9 @@ have spatially more granular data for the estimate of the amount of rain as any 
 
 In `analysis.ipynb` I explore the relation of the rain and temperature compared to the different water quality measurements
 we get from Pikkukoski.
+
+## Future development and disclaimer
+
+This project is still in active development and as such an exploratory analysis it's not very presentable yet. There still exists no regression model
+and the notebook will be cleaned up in the future. That being said, I'm making the repo already public such that I can get some feedback and ideas
+from data scientists.
