@@ -49,7 +49,7 @@ def fix_weather_data(weather_data_filename: str, fixed_weather_data_filename: st
         previous_measurement = split_line[-1] # Last value is the measurement
         previous_station = split_line[0] # First value is the station
       else:
-        new_line = ",".join([previous_station] + split_line[0:-1] + [previous_measurement])
+        new_line = ",".join([previous_station] + split_line[1:-1] + [previous_measurement])
       new_lines.append(new_line)
   with open(fixed_weather_data_filename, "w") as ff:
     ff.writelines(new_lines)
