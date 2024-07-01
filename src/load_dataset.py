@@ -149,40 +149,6 @@ def get_filenames() -> tuple[dict, dict]:
 
 
 def main():
-  """PIKKUKOSKI_2024 = "../data/pikkukoski_2024.csv"
-  PAKILA_2024 = "../data/pakila_2024.csv"
-  TAPANINVAINIO_2024 = "../data/tapaninvainio_2024.csv"
-
-  PIKKUKOSKI_2023 = "../data/pikkukoski_2023.csv"
-  PAKILA_2023 = "../data/pakila_2023.csv"
-  TAPANINVAINIO_2023 = "../data/tapaninvainio_2023.csv"
-
-  PIKKUKOSKI_2022 = "../data/pikkukoski_2022.csv"
-  PAKILA_2022 = "../data/pakila_2022.csv"
-  TAPANINVAINIO_2022 = "../data/tapaninvainio_2022.csv"
-
-  PIKKUKOSKI_2021 = "../data/pikkukoski_2021.csv"
-  PAKILA_2021 = "../data/pakila_2021.csv"
-  TAPANINVAINIO_2021 = "../data/tapaninvainio_2021.csv"
-
-  KUMPULA_2021 = "../data/Helsinki Kumpula_ 25.5.2021 - 30.8.2021_c125b1e6-d253-4d56-9c10-880a6f6e198a.csv"
-  KUMPULA_2022 = "../data/Helsinki Kumpula_ 25.5.2022 - 30.8.2022_c7ee589b-5a8d-420d-82e5-3ecf704f71f0.csv"
-  KUMPULA_2023 = "../data/Helsinki Kumpula_ 25.5.2023 - 30.8.2023_d6f3d181-df41-42ba-b2eb-77d9b687db9d.csv"
-  KUMPULA_2024 = "../data/Helsinki Kumpula_ 25.5.2024 - 25.6.2024_3733a5d6-a008-4858-9a88-88e3d33415e8.csv"
-
-  HELSINKI_VANTAA_2021 = "../data/Vantaa Helsinki-Vantaan lentoasema_ 25.5.2021 - 30.8.2021_e667c023-1a8c-49c9-a70a-55ebcf553c48.fixed.csv"
-  HELSINKI_VANTAA_2022 = "../data/Vantaa Helsinki-Vantaan lentoasema_ 25.5.2022 - 30.8.2022_3eb7a63b-d960-425f-8463-903cf05b0945.csv"
-  HELSINKI_VANTAA_2023 = "../data/Vantaa Helsinki-Vantaan lentoasema_ 25.5.2023 - 30.8.2023_195d7189-8a24-408e-832d-35df526886af.csv"
-  HELSINKI_VANTAA_2024 = "../data/Vantaa Helsinki-Vantaan lentoasema_ 25.5.2024 - 25.6.2024_fe257415-f7da-404c-803d-a9b6cf0f3b5f.csv"
-
-  weather_files = {"helsinki-vantaa": [HELSINKI_VANTAA_2021, HELSINKI_VANTAA_2022, HELSINKI_VANTAA_2023, HELSINKI_VANTAA_2024],
-                   "kumpula": [KUMPULA_2021, KUMPULA_2022, KUMPULA_2023, KUMPULA_2024]}
-  measurement_files = {
-    "pikkukoski": [PIKKUKOSKI_2021, PIKKUKOSKI_2022, PIKKUKOSKI_2023, PIKKUKOSKI_2024],
-    "pakila": [PAKILA_2021, PAKILA_2022, PAKILA_2023, PAKILA_2024],
-    "tapaninvainio": [TAPANINVAINIO_2021, TAPANINVAINIO_2022, TAPANINVAINIO_2023, TAPANINVAINIO_2024]
-  }"""
-
   weather_files, measurement_files = get_filenames()
 
   X, Y = load_dataset(weather_files, measurement_files)
