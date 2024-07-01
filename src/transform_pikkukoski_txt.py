@@ -37,6 +37,7 @@ def process_file(pikkukoski_filename: str):
   columns = ["date", "quality", "temperature", "enterococci", "ecoli", "blue_green_algae", "other_observations"]
   df = pd.DataFrame(data, columns=columns)
   df["date"] = pd.to_datetime(df["date"])
+  df.set_index("date", inplace=True)
 
   print(df)
 
@@ -46,16 +47,16 @@ def process_file(pikkukoski_filename: str):
   print(f"Saved pikkukoski water quality to file ${csv_filename}")
 
 def main():
-  #process_file("../data/pikkukoski_2023.txt")
-  #process_file("../data/pikkukoski_2024.txt")
-  #process_file("../data/tapaninvainio_2023.txt")
-  #process_file("../data/pakila_2023.txt")
-  #process_file("../data/pikkukoski_2021.txt")
-  #process_file("../data/pikkukoski_2022.txt")
-  #process_file("../data/tapaninvainio_2021.txt")
-  #process_file("../data/tapaninvainio_2022.txt")
-  #process_file("../data/pakila_2021.txt")
-  #process_file("../data/pakila_2022.txt")
+  process_file("../data/pikkukoski_2023.txt")
+  process_file("../data/pikkukoski_2024.txt")
+  process_file("../data/tapaninvainio_2023.txt")
+  process_file("../data/pakila_2023.txt")
+  process_file("../data/pikkukoski_2021.txt")
+  process_file("../data/pikkukoski_2022.txt")
+  process_file("../data/tapaninvainio_2021.txt")
+  process_file("../data/tapaninvainio_2022.txt")
+  process_file("../data/pakila_2021.txt")
+  process_file("../data/pakila_2022.txt")
   process_file("../data/pakila_2024.txt")
   process_file("../data/tapaninvainio_2024.txt")
 
