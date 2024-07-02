@@ -58,7 +58,7 @@ def combine_measurements(measurements: list[pd.DataFrame], beach_names = list[st
     merged = pd.merge(merged, rename_measurement_and_drop(measurements[i], beach_names[i]), on="date", how="inner")
   return merged
 
-def load_dataset(weather_files: dict, measurement_files: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
+def load_dataset(weather_files: dict, measurement_files: dict, resample_rate: str="12h", lag_features: int=5, rolling_window: int=10) -> tuple[pd.DataFrame, pd.DataFrame]:
   """
   Load X and Y. Do train and test split later.
   Dicts given to the function are structured as such (key is always the observation station name, list length must be same, year order must be same):
@@ -67,14 +67,11 @@ def load_dataset(weather_files: dict, measurement_files: dict) -> tuple[pd.DataF
     "helsinki-vantaa": ["helsinki-vantaa2021.csv", "helsinki-vantaa2022.csv"],
   }
   """
-  RESAMPLE_RATE = "12h"
-  ROLLING_WINDOW = 10
-  LAG_FEATURES = 5
   weather_station_names = []
   weather_observations = {}
   for key in weather_files:
     weather_station_names.append(key)
-    weather_observations[key] = [weather_with_lag(resample_weather_data(read_weather_data(filename), RESAMPLE_RATE), LAG_FEATURES, ROLLING_WINDOW) for filename in weather_files[key]]
+    weather_observations[key] = [weather_with_lag(resample_weather_data(read_weather_data(filename), resample_rate), lag_features, rolling_window) for filename in weather_files[key]]
   
   measurement_beach_names = []
   measurements = {}
@@ -86,18 +83,14 @@ def load_dataset(weather_files: dict, measurement_files: dict) -> tuple[pd.DataF
   observation_years = len(weather_observations[next(iter(weather_observations))])
   assert(observation_years == len(measurement_files[next(iter(measurement_files))]))
 
-  combined_year_observations = []
-  combined_year_measurements = []
   observations_and_measurements_for_years = []
   for year_index in range(observation_years):
     # Weather data
     weather_observations_for_year = [weather_observations[observation_key][year_index] for observation_key in weather_observations.keys()]
     combined_observations_for_year = combine_weather_observations(weather_observations_for_year, weather_station_names)
-    #combined_year_observations.append(combined_observations_for_year)
     # Water quality measurement data
     measurements_for_year = [measurements[key][year_index] for key in measurements.keys()]
     combined_measurements_for_year = combine_measurements(measurements_for_year, measurement_beach_names)
-    #combined_year_measurements.append(combined_measurements_for_year)
     observations_and_measurements_for_years.append(pd.merge(combined_observations_for_year, combined_measurements_for_year, on="date", how="inner"))
   
   all_observations_and_measurements = pd.concat(observations_and_measurements_for_years)
