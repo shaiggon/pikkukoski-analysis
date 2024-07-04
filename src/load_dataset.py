@@ -1,6 +1,7 @@
 import pandas as pd
 from read_weather_data import read_weather_data, resample_weather_data
 from read_pikkukoski_measurement import read_pikkukoski_measurement
+import glob
 
 def weather_with_lag(df: pd.DataFrame, number_of_lag_features: int = 5, rolling_window: int = 5) -> pd.DataFrame:
   """
@@ -103,6 +104,34 @@ def load_dataset(weather_files: dict, measurement_files: dict, resample_rate: st
 
   return X, Y
 
+def load_features_for_rain(weather_files: dict, resample_rate: str="12h", lag_features: int=5, rolling_window: int=10) -> pd.DataFrame:
+  """
+  Load only the weather data (for prediction mostly). Dict given same way as load_dataset.
+  """
+  weather_station_names = []
+  weather_observations = {}
+  observation_years = 0
+  for key in weather_files:
+    weather_station_names.append(key)
+    observation_years = len(weather_files[key])
+    weather_observations[key] = [weather_with_lag(resample_weather_data(read_weather_data(filename), resample_rate), lag_features, rolling_window) for filename in weather_files[key]]
+  # Get length of observations per station
+  #observation_years = len(weather_observations[next(iter(weather_observations))])
+  #print(f"observation years: {observation_years}")
+  #print(weather_observations)
+  weather_observations_for_years = []
+  for year_index in range(observation_years):
+    # Weather data
+    #print("load weather data")
+    weather_observations_for_year = [weather_observations[observation_key][year_index] for observation_key in weather_observations.keys()]
+    weather_observations_for_years.append(combine_weather_observations(weather_observations_for_year, weather_station_names))
+  #print(weather_observations_for_years)
+  all_weather_observations = weather_observations_for_years[0]
+  x_feature_names = [col for col in all_weather_observations if "rain_" in col]
+
+  return all_weather_observations[x_feature_names]
+
+
 def get_filenames() -> tuple[dict, dict]:
   PIKKUKOSKI_2024 = "../data/pikkukoski_2024.csv"
   PAKILA_2024 = "../data/pakila_2024.csv"
@@ -139,6 +168,21 @@ def get_filenames() -> tuple[dict, dict]:
   }
 
   return weather_files, measurement_files
+
+def get_measurement_files_pikkukoski() -> dict:
+  PIKKUKOSKI_2024 = "../data/pikkukoski_2024.csv"
+  PIKKUKOSKI_2023 = "../data/pikkukoski_2023.csv"
+  PIKKUKOSKI_2022 = "../data/pikkukoski_2022.csv"
+  PIKKUKOSKI_2021 = "../data/pikkukoski_2021.csv"
+  return { "pikkukoski": [PIKKUKOSKI_2021, PIKKUKOSKI_2022, PIKKUKOSKI_2023, PIKKUKOSKI_2024] }
+
+
+def get_weather_file_names_for_year(year: str="2024") -> dict:
+  kumpula = glob.glob(f"../data/Helsinki Kumpula*{year}*.csv")
+  helsinki_vantaa = glob.glob(f"../data/Vantaa Helsinki-*{year}*.csv")
+  if len(helsinki_vantaa) > 1:
+    helsinki_vantaa = [h for h in helsinki_vantaa if "fixed" in h]
+  return {"helsinki-vantaa": helsinki_vantaa, "kumpula": kumpula}
 
 
 def main():
