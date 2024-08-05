@@ -1,0 +1,4 @@
+# scheduler/supercronic.cron
+
+# Run the Python script every hour (every minute now for testing change to 0 * * * * for hourly)
+* * * * * python /etl/etl.py
