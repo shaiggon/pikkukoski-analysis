@@ -1,0 +1,5 @@
+services:
+  etl:
+    build: ./etl
+    volumes:
+      - ./etl_weather_data.parquet:/etl/etl_weather_data.parquet
