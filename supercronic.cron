@@ -1,0 +1,10 @@
+# Bootstrapping is idempotent.
+*/30 * * * * python -m app.cli init-db
+5 * * * * python -m app.cli ingest-weather --hours 12
+10 * * * * python -m app.cli generate-predictions
+12 * * * * python -m app.cli publish-site-data
+20 4 * * * python -m app.cli import-measurements
+25 4 * * * python -m app.cli import-historical-weather
+35 4 * * * python -m app.cli train-models
+45 4 * * * python -m app.cli generate-predictions
+50 4 * * * python -m app.cli publish-site-data

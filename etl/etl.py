@@ -71,6 +71,35 @@ def save_new_weather(df: pd.DataFrame):
   df.to_parquet(ETL_WEATHER_FILENAME)
   print(f"Saved etl result to {ETL_WEATHER_FILENAME}")
 
+def normalise_weather_frame(df: pd.DataFrame) -> pd.DataFrame:
+  """
+  Convert raw weather data into the parquet shape used by the ETL.
+  """
+  normalised = df.copy()
+  if "timestamp" in normalised.columns:
+    normalised["timestamp"] = pd.to_datetime(normalised["timestamp"])
+    normalised.set_index("timestamp", inplace=True)
+  else:
+    normalised.index = pd.to_datetime(normalised.index)
+    normalised.index.name = "timestamp"
+
+  normalised[["rain"]] = normalised[["rain"]].apply(pd.to_numeric, errors='coerce')
+  normalised.sort_index(inplace=True)
+  return normalised
+
+def combine_weather(previous_weather: pd.DataFrame, new_weather: pd.DataFrame) -> pd.DataFrame:
+  """
+  Merge old and new observations without losing one station when only the other
+  station appears in an overlapping fetch window.
+  """
+  previous_reset = previous_weather.reset_index()
+  new_reset = new_weather.reset_index()
+  combined = pd.concat([previous_reset, new_reset], ignore_index=True)
+  combined.drop_duplicates(subset=["timestamp", "location"], keep="last", inplace=True)
+  combined.sort_values(by=["timestamp", "location"], inplace=True)
+  combined.set_index("timestamp", inplace=True)
+  return combined
+
 def main():
   previous_weather = read_previous_weather()
 
@@ -82,17 +111,15 @@ def main():
 
   if df is not None:
     # Process the newly fetched data
-    df[["timestamp"]] = df[["timestamp"]].apply(pd.to_datetime)
-    df.set_index("timestamp", inplace=True)
-    df[["rain"]] = df[["rain"]].apply(pd.to_numeric, errors='coerce')
-    df.sort_values(by="timestamp", inplace=True)
+    df = normalise_weather_frame(df)
 
     # Combine previous measurements with newly fetched data
     if previous_weather is not None:
-      previous_weather = previous_weather[~previous_weather.index.isin(df.index)]
-      df = pd.concat([previous_weather, df])
+      previous_weather = normalise_weather_frame(previous_weather)
+      df = combine_weather(previous_weather, df)
 
     # Fill NaN only after combining new and old data
+    df.sort_index(inplace=True)
     df[["rain"]] = df.groupby("location")[["rain"]].ffill()
     save_new_weather(df)
 

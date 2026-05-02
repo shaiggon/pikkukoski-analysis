@@ -73,3 +73,23 @@ we get from Pikkukoski.
 This project is still in active development and as such an exploratory analysis it's not very presentable yet. There still exists no regression model
 and the notebook will be cleaned up in the future. That being said, I'm making the repo already public such that I can get some feedback and ideas
 from data scientists.
+
+## Application workflow
+
+The repo now also contains a small production-shaped app under `app/`:
+
+1. Initialise and backfill the local SQLite database:
+   `pyenv install 3.14.4`
+   `pyenv local 3.14.4`
+   `python -m venv .venv && . .venv/bin/activate && pip install -U pip`
+   `pip install -r requirements-app.txt`
+   `python -m app.cli refresh-all`
+2. Run the website locally:
+   `uvicorn app.web:app --host 0.0.0.0 --port 8000`
+3. Run scheduled refreshes with Docker Compose:
+   `docker compose up --build`
+
+The app stores operational state in `var/pikkukoski.db` and publishes website-friendly JSON artifacts into `generated/`.
+
+The original `requirements.txt` still exists for notebooks and exploratory analysis. The app/runtime path uses `requirements-app.txt`.
+The repo now targets Python 3.14.4. If `pyenv local` is set correctly before you create the venv, the current pinned packages should install using wheels rather than forcing a pandas source build.
