@@ -128,7 +128,7 @@
           {% if prediction %}
             <p class="status {{ prediction.quality_label_predicted }}">{{ prediction.quality_label_predicted }}</p>
             <p class="small">
-              Predicted for {{ prediction.predicted_for }}.
+              Predicted at {{ prediction.predicted_at }}.
               Bad-water probability {{ "%.0f"|format(prediction.quality_probability_bad * 100) }}%.
             </p>
           {% else %}
@@ -174,7 +174,7 @@
           <div class="history-list">
             {% for item in history %}
               <div class="metric-row">
-                <span>{{ item.predicted_for }}</span>
+                <span>{{ item.predicted_at }}</span>
                 <strong>{{ item.quality_label_predicted }} / {{ "%.0f"|format(item.quality_probability_bad * 100) }}%</strong>
               </div>
             {% endfor %}
@@ -184,4 +184,3 @@
     </main>
   </body>
   </html>
-

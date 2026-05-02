@@ -66,8 +66,8 @@ def api_status():
 @app.get("/api/history")
 def api_history(days: int = 30):
     with open_db(settings.database_path) as connection:
-        history = fetch_prediction_history(connection, PUBLIC_BEACH_ID, limit=days)
-        recent_rain = fetch_recent_weather_for_station(connection, "kumpula", limit=max(days, 24))
+        history = fetch_prediction_history(connection, PUBLIC_BEACH_ID, limit=max(days * 4, 24))
+        recent_rain = fetch_recent_weather_for_station(connection, "kumpula", limit=max(days * 4, 24))
     return JSONResponse({"predictions": history, "recent_rain": recent_rain})
 
 
@@ -76,4 +76,3 @@ def health():
     with open_db(settings.database_path) as connection:
         connection.execute("SELECT 1").fetchone()
     return {"status": "ok"}
-

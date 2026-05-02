@@ -10,7 +10,7 @@ from app.storage import fetch_latest_prediction, fetch_prediction_history, fetch
 def write_public_artifacts(connection, output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     latest_prediction = fetch_latest_prediction(connection, PUBLIC_BEACH_ID)
-    history = fetch_prediction_history(connection, PUBLIC_BEACH_ID, limit=30)
+    history = fetch_prediction_history(connection, PUBLIC_BEACH_ID, limit=120)
     rain_history = fetch_recent_weather_for_station(connection, "kumpula", limit=56)
 
     (output_dir / "current_status.json").write_text(
@@ -26,4 +26,3 @@ def write_public_artifacts(connection, output_dir: Path) -> None:
             sort_keys=True,
         )
     )
-

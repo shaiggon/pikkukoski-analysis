@@ -1,1 +1,5 @@
 4.6.2024 Hyvä/bra/good 20,8 160 50 0 0
+25.6.2024 Huono/dålig/poor 19,5 >800 1000 0 0
+28.6.2024, uusinta Hyvä/bra/good 22,6 <1 59 0 0
+17.7.2024 Hyvä/bra/good 20,8 180 180 2 0
+14.8.2024 Hyvä/bra/good 18 190 120 1 0

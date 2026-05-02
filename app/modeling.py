@@ -7,17 +7,26 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error, mean_squared_error, precision_score, r2_score, recall_score
 from sklearn.linear_model import LogisticRegression, Ridge
-from sklearn.model_selection import GroupKFold, cross_validate
+from sklearn.model_selection import GroupKFold, LeaveOneGroupOut, cross_validate, cross_val_predict
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from app.constants import PUBLIC_BEACH_ID
-from app.features import FEATURE_SPEC_VERSION, build_current_feature_row, build_training_dataset, prediction_band_from_probability
+from app.features import (
+    FEATURE_SPEC_VERSION,
+    WARNING_PROBABILITY_THRESHOLD,
+    build_prediction_feature_rows,
+    build_training_dataset,
+    prediction_band_from_probability,
+)
 
 
 @dataclass
 class TrainedArtifacts:
     classification_model: LogisticRegression
-    regression_model: Ridge
+    regression_model: object
     feature_columns: list[str]
     metrics: dict[str, object]
 
@@ -48,7 +57,7 @@ def _cross_validation_metrics(
         scoring=("accuracy", "f1"),
     )
     regression_scores = cross_validate(
-        Ridge(alpha=1.0),
+        make_pipeline(StandardScaler(), Ridge(alpha=1.0)),
         x_features,
         y_regression,
         groups=groups,
@@ -60,6 +69,98 @@ def _cross_validation_metrics(
         "classification_f1_mean": float(np.mean(classification_scores["test_f1"])),
         "regression_neg_mae_mean": float(np.mean(regression_scores["test_neg_mean_absolute_error"])),
         "regression_r2_mean": float(np.mean(regression_scores["test_r2"])),
+    }
+
+
+def evaluate_models(
+    weather_records: list[dict[str, object]],
+    measurement_records: list[dict[str, object]],
+    *,
+    timezone,
+) -> dict[str, object]:
+    x_frame, y_frame = build_training_dataset(
+        weather_records,
+        measurement_records,
+        beach_id=PUBLIC_BEACH_ID,
+        timezone=timezone,
+    )
+    if x_frame.empty or y_frame.empty:
+        raise ValueError("Training dataset is empty")
+
+    feature_columns = [column for column in x_frame.columns if column != "measured_on"]
+    x_features = x_frame[feature_columns]
+    y_quality = y_frame["quality_bad"]
+    y_regression = y_frame[["enterococci", "ecoli"]]
+    y_regression_log = np.log1p(y_regression)
+    groups = pd.to_datetime(x_frame["measured_on"]).dt.year
+
+    cv = LeaveOneGroupOut()
+    classification_model = LogisticRegression(max_iter=1000)
+    regression_model = make_pipeline(StandardScaler(), Ridge(alpha=1.0))
+
+    cls_oof = cross_val_predict(classification_model, x_features, y_quality, groups=groups, cv=cv, method="predict")
+    cls_oof_proba = cross_val_predict(
+        classification_model, x_features, y_quality, groups=groups, cv=cv, method="predict_proba"
+    )[:, 1]
+    reg_oof = cross_val_predict(regression_model, x_features, y_regression, groups=groups, cv=cv)
+    reg_oof = np.clip(reg_oof, a_min=0.0, a_max=None)
+
+    report = pd.DataFrame(
+        {
+            "date": x_frame["measured_on"],
+            "year": groups,
+            "actual_quality_bad": y_quality,
+            "pred_quality_bad": cls_oof,
+            "pred_bad_probability": cls_oof_proba,
+            "actual_enterococci": y_regression["enterococci"],
+            "pred_enterococci": reg_oof[:, 0],
+            "actual_ecoli": y_regression["ecoli"],
+            "pred_ecoli": reg_oof[:, 1],
+        }
+    )
+    report["date"] = report["date"].astype(str)
+    report["enterococci_abs_error"] = (report["actual_enterococci"] - report["pred_enterococci"]).abs()
+    report["ecoli_abs_error"] = (report["actual_ecoli"] - report["pred_ecoli"]).abs()
+
+    warning_pred = (cls_oof_proba >= WARNING_PROBABILITY_THRESHOLD).astype(int)
+
+    by_year: dict[str, object] = {}
+    for year in sorted(report["year"].unique()):
+        year_frame = report[report["year"] == year]
+        by_year[str(year)] = {
+            "rows": int(len(year_frame)),
+            "accuracy": float(accuracy_score(year_frame["actual_quality_bad"], year_frame["pred_quality_bad"])),
+            "f1": float(f1_score(year_frame["actual_quality_bad"], year_frame["pred_quality_bad"], zero_division=0)),
+            "enterococci_mae": float(
+                mean_absolute_error(year_frame["actual_enterococci"], year_frame["pred_enterococci"])
+            ),
+            "ecoli_mae": float(mean_absolute_error(year_frame["actual_ecoli"], year_frame["pred_ecoli"])),
+        }
+
+    return {
+        "rows": int(len(x_frame)),
+        "years": [int(year) for year in sorted(groups.unique())],
+        "bad_count": int(y_quality.sum()),
+        "good_count": int((1 - y_quality).sum()),
+        "logo_accuracy": float(accuracy_score(y_quality, cls_oof)),
+        "logo_f1": float(f1_score(y_quality, cls_oof)),
+        "warning_threshold": WARNING_PROBABILITY_THRESHOLD,
+        "warning_accuracy": float(accuracy_score(y_quality, warning_pred)),
+        "warning_precision": float(precision_score(y_quality, warning_pred, zero_division=0)),
+        "warning_recall": float(recall_score(y_quality, warning_pred, zero_division=0)),
+        "enterococci_mae": float(mean_absolute_error(y_regression["enterococci"], reg_oof[:, 0])),
+        "ecoli_mae": float(mean_absolute_error(y_regression["ecoli"], reg_oof[:, 1])),
+        "enterococci_rmse": float(np.sqrt(mean_squared_error(y_regression["enterococci"], reg_oof[:, 0]))),
+        "ecoli_rmse": float(np.sqrt(mean_squared_error(y_regression["ecoli"], reg_oof[:, 1]))),
+        "enterococci_r2": float(r2_score(y_regression["enterococci"], reg_oof[:, 0])),
+        "ecoli_r2": float(r2_score(y_regression["ecoli"], reg_oof[:, 1])),
+        "per_year": by_year,
+        "worst_enterococci_rows": report.sort_values("enterococci_abs_error", ascending=False)
+        .head(8)
+        .to_dict(orient="records"),
+        "worst_ecoli_rows": report.sort_values("ecoli_abs_error", ascending=False)
+        .head(8)
+        .to_dict(orient="records"),
     }
 
 
@@ -89,7 +190,7 @@ def train_models(
     classification_model = LogisticRegression(max_iter=1000)
     classification_model.fit(x_features, y_quality)
 
-    regression_model = Ridge(alpha=1.0)
+    regression_model = make_pipeline(StandardScaler(), Ridge(alpha=1.0))
     regression_model.fit(x_features, y_regression)
 
     return TrainedArtifacts(
@@ -116,7 +217,7 @@ def save_artifacts(artifacts: TrainedArtifacts, models_dir: Path) -> None:
     (models_dir / "metadata.json").write_text(json.dumps(metadata, indent=2, sort_keys=True))
 
 
-def load_artifacts(models_dir: Path) -> tuple[LogisticRegression, Ridge, dict[str, object]]:
+def load_artifacts(models_dir: Path) -> tuple[LogisticRegression, object, dict[str, object]]:
     with (models_dir / "classification.pkl").open("rb") as handle:
         classification_model = pickle.load(handle)
     with (models_dir / "regression.pkl").open("rb") as handle:
@@ -125,26 +226,44 @@ def load_artifacts(models_dir: Path) -> tuple[LogisticRegression, Ridge, dict[st
     return classification_model, regression_model, metadata
 
 
-def generate_prediction(
+def generate_predictions(
     weather_records: list[dict[str, object]],
     *,
     timezone,
     models_dir: Path,
-) -> dict[str, object]:
+    after_feature_time_local: pd.Timestamp | None = None,
+) -> list[dict[str, object]]:
     classification_model, regression_model, metadata = load_artifacts(models_dir)
-    latest_time, current_features = build_current_feature_row(weather_records, timezone=timezone)
+    current_features = build_prediction_feature_rows(
+        weather_records,
+        timezone=timezone,
+        after_feature_time_local=after_feature_time_local,
+    )
+    if current_features.empty:
+        return []
     feature_columns = metadata["feature_columns"]
     feature_vector = current_features[feature_columns]
-    probability_bad = float(classification_model.predict_proba(feature_vector)[0][1])
-    enterococci_predicted, ecoli_predicted = regression_model.predict(feature_vector)[0]
-    return {
-        "feature_spec_version": metadata["feature_spec_version"],
-        "feature_snapshot": {key: float(value) for key, value in feature_vector.iloc[0].to_dict().items()},
-        "predicted_for": latest_time.date().isoformat(),
-        "latest_feature_time_local": latest_time.isoformat(),
-        "quality_probability_bad": probability_bad,
-        "quality_label_predicted": prediction_band_from_probability(probability_bad),
-        "enterococci_predicted": float(enterococci_predicted),
-        "ecoli_predicted": float(ecoli_predicted),
-    }
+    probabilities = classification_model.predict_proba(feature_vector)
+    regression_outputs = regression_model.predict(feature_vector)
+    regression_outputs = np.clip(regression_outputs, a_min=0.0, a_max=None)
 
+    predictions: list[dict[str, object]] = []
+    for index, feature_time_local in enumerate(feature_vector.index):
+        probability_bad = float(probabilities[index][1])
+        enterococci_predicted, ecoli_predicted = regression_outputs[index]
+        predictions.append(
+            {
+                "feature_spec_version": metadata["feature_spec_version"],
+                "feature_snapshot": {
+                    key: float(value) for key, value in feature_vector.iloc[index].to_dict().items()
+                },
+                "predicted_at": feature_time_local.isoformat(),
+                "predicted_for_date": feature_time_local.date().isoformat(),
+                "feature_time_local": feature_time_local.isoformat(),
+                "quality_probability_bad": probability_bad,
+                "quality_label_predicted": prediction_band_from_probability(probability_bad),
+                "enterococci_predicted": float(enterococci_predicted),
+                "ecoli_predicted": float(ecoli_predicted),
+            }
+        )
+    return predictions

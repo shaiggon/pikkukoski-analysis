@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from app.storage import connect, init_db, upsert_daily_prediction
+from app.storage import connect, init_db, upsert_prediction
 
 
 class WebAppTests(unittest.TestCase):
@@ -24,11 +24,13 @@ class WebAppTests(unittest.TestCase):
                 """,
                 ("2026-05-01T00:00:00+00:00", "spec", "LogisticRegression", "Ridge", "{}"),
             )
-            upsert_daily_prediction(
+            upsert_prediction(
                 connection,
                 {
                     "beach_id": "pikkukoski",
-                    "predicted_for": "2026-05-01",
+                    "predicted_at": "2026-05-01T12:00:00+03:00",
+                    "predicted_for_date": "2026-05-01",
+                    "feature_time_local": "2026-05-01T12:00:00+03:00",
                     "quality_probability_bad": 0.2,
                     "quality_label_predicted": "good",
                     "enterococci_predicted": 20.0,
@@ -57,4 +59,3 @@ class WebAppTests(unittest.TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()["status"], "ok")
-

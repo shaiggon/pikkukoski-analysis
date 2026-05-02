@@ -58,9 +58,11 @@ def init_db(connection: sqlite3.Connection) -> None:
             metrics_json TEXT NOT NULL
         );
 
-        CREATE TABLE IF NOT EXISTS daily_prediction (
+        CREATE TABLE IF NOT EXISTS prediction (
             beach_id TEXT NOT NULL,
-            predicted_for TEXT NOT NULL,
+            predicted_at TEXT NOT NULL,
+            predicted_for_date TEXT NOT NULL,
+            feature_time_local TEXT NOT NULL,
             quality_probability_bad REAL NOT NULL,
             quality_label_predicted TEXT NOT NULL,
             enterococci_predicted REAL NOT NULL,
@@ -68,12 +70,48 @@ def init_db(connection: sqlite3.Connection) -> None:
             feature_snapshot_json TEXT NOT NULL,
             model_run_id INTEGER NOT NULL,
             generated_at TEXT NOT NULL,
-            PRIMARY KEY (beach_id, predicted_for),
+            PRIMARY KEY (beach_id, predicted_at),
             FOREIGN KEY (model_run_id) REFERENCES model_run(id)
         );
         """
     )
+    _migrate_daily_predictions(connection)
     connection.commit()
+
+
+def _migrate_daily_predictions(connection: sqlite3.Connection) -> None:
+    table = connection.execute(
+        """
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table' AND name = 'daily_prediction'
+        """
+    ).fetchone()
+    if table is None:
+        return
+
+    connection.execute(
+        """
+        INSERT OR IGNORE INTO prediction (
+            beach_id, predicted_at, predicted_for_date, feature_time_local,
+            quality_probability_bad, quality_label_predicted, enterococci_predicted,
+            ecoli_predicted, feature_snapshot_json, model_run_id, generated_at
+        )
+        SELECT
+            beach_id,
+            generated_at AS predicted_at,
+            predicted_for AS predicted_for_date,
+            predicted_for AS feature_time_local,
+            quality_probability_bad,
+            quality_label_predicted,
+            enterococci_predicted,
+            ecoli_predicted,
+            feature_snapshot_json,
+            model_run_id,
+            generated_at
+        FROM daily_prediction
+        """
+    )
 
 
 def upsert_weather_observations(connection: sqlite3.Connection, records: Iterable[dict[str, Any]]) -> int:
@@ -174,15 +212,18 @@ def insert_model_run(
     return int(cursor.lastrowid)
 
 
-def upsert_daily_prediction(connection: sqlite3.Connection, record: dict[str, Any]) -> None:
+def upsert_prediction(connection: sqlite3.Connection, record: dict[str, Any]) -> None:
     connection.execute(
         """
-        INSERT INTO daily_prediction (
-            beach_id, predicted_for, quality_probability_bad, quality_label_predicted,
-            enterococci_predicted, ecoli_predicted, feature_snapshot_json, model_run_id, generated_at
+        INSERT INTO prediction (
+            beach_id, predicted_at, predicted_for_date, feature_time_local,
+            quality_probability_bad, quality_label_predicted, enterococci_predicted,
+            ecoli_predicted, feature_snapshot_json, model_run_id, generated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(beach_id, predicted_for) DO UPDATE SET
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(beach_id, predicted_at) DO UPDATE SET
+            predicted_for_date = excluded.predicted_for_date,
+            feature_time_local = excluded.feature_time_local,
             quality_probability_bad = excluded.quality_probability_bad,
             quality_label_predicted = excluded.quality_label_predicted,
             enterococci_predicted = excluded.enterococci_predicted,
@@ -193,7 +234,9 @@ def upsert_daily_prediction(connection: sqlite3.Connection, record: dict[str, An
         """,
         (
             record["beach_id"],
-            record["predicted_for"],
+            record["predicted_at"],
+            record["predicted_for_date"],
+            record["feature_time_local"],
             float(record["quality_probability_bad"]),
             record["quality_label_predicted"],
             float(record["enterococci_predicted"]),
@@ -204,6 +247,22 @@ def upsert_daily_prediction(connection: sqlite3.Connection, record: dict[str, An
         ),
     )
     connection.commit()
+
+
+def fetch_latest_prediction_time(connection: sqlite3.Connection, beach_id: str) -> str | None:
+    row = connection.execute(
+        """
+        SELECT predicted_at
+        FROM prediction
+        WHERE beach_id = ?
+        ORDER BY predicted_at DESC
+        LIMIT 1
+        """,
+        (beach_id,),
+    ).fetchone()
+    if row is None:
+        return None
+    return str(row["predicted_at"])
 
 
 def fetch_weather_observations(connection: sqlite3.Connection) -> list[dict[str, Any]]:
@@ -254,18 +313,18 @@ def fetch_latest_model_run(connection: sqlite3.Connection) -> dict[str, Any] | N
 def fetch_latest_prediction(connection: sqlite3.Connection, beach_id: str) -> dict[str, Any] | None:
     row = connection.execute(
         """
-        SELECT dp.*, m.measured_on, m.enterococci AS measured_enterococci, m.ecoli AS measured_ecoli,
+        SELECT p.*, m.measured_on, m.enterococci AS measured_enterococci, m.ecoli AS measured_ecoli,
                m.quality_label AS measured_quality_label
-        FROM daily_prediction dp
+        FROM prediction p
         LEFT JOIN water_quality_measurement m
-            ON m.beach_id = dp.beach_id
+            ON m.beach_id = p.beach_id
            AND m.measured_on = (
                 SELECT MAX(measured_on)
                 FROM water_quality_measurement
-                WHERE beach_id = dp.beach_id
+                WHERE beach_id = p.beach_id
            )
-        WHERE dp.beach_id = ?
-        ORDER BY dp.predicted_for DESC
+        WHERE p.beach_id = ?
+        ORDER BY p.predicted_at DESC
         LIMIT 1
         """,
         (beach_id,),
@@ -277,9 +336,9 @@ def fetch_prediction_history(connection: sqlite3.Connection, beach_id: str, limi
     rows = connection.execute(
         """
         SELECT *
-        FROM daily_prediction
+        FROM prediction
         WHERE beach_id = ?
-        ORDER BY predicted_for DESC
+        ORDER BY predicted_at DESC
         LIMIT ?
         """,
         (beach_id, limit),
@@ -303,4 +362,3 @@ def fetch_recent_weather_for_station(
         (station_id, limit),
     ).fetchall()
     return [dict(row) for row in reversed(rows)]
-

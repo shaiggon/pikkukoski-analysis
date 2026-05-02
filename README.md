@@ -89,6 +89,13 @@ The repo now also contains a small production-shaped app under `app/`:
 3. Run scheduled refreshes with Docker Compose:
    `docker compose up --build`
 
+For historical weather, there are now two separate paths:
+
+- `python -m app.cli import-historical-weather`
+  Imports only the local CSV files already present under `data/`.
+- `python -m app.cli import-fmi-history --start-date 2025-06-01 --end-date 2025-08-31`
+  Fetches historical hourly rain directly from FMI for Kumpula and Helsinki-Vantaa and writes it into the SQLite database.
+
 The app stores operational state in `var/pikkukoski.db` and publishes website-friendly JSON artifacts into `generated/`.
 
 The original `requirements.txt` still exists for notebooks and exploratory analysis. The app/runtime path uses `requirements-app.txt`.

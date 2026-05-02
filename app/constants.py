@@ -9,6 +9,7 @@ class StationConfig:
     station_id: str
     display_name: str
     fmi_place: str
+    fmi_name_aliases: tuple[str, ...]
     historical_glob: str
     source_name: str
 
@@ -25,6 +26,7 @@ STATIONS: tuple[StationConfig, ...] = (
         station_id="kumpula",
         display_name="Kumpula",
         fmi_place="kumpula",
+        fmi_name_aliases=("kumpula", "helsinki kumpula"),
         historical_glob="Helsinki Kumpula*.csv",
         source_name="fmi",
     ),
@@ -32,6 +34,7 @@ STATIONS: tuple[StationConfig, ...] = (
         station_id="helsinki-vantaa",
         display_name="Helsinki-Vantaa",
         fmi_place="helsinki-vantaan_lentoasema",
+        fmi_name_aliases=("helsinki-vantaan_lentoasema", "vantaa helsinki-vantaan lentoasema"),
         historical_glob="Vantaa Helsinki-*.csv",
         source_name="fmi",
     ),
@@ -77,4 +80,3 @@ def beach_by_id(beach_id: str) -> BeachConfig:
 
 def find_files(data_dir: Path, pattern: str) -> list[Path]:
     return sorted(data_dir.glob(pattern))
-

@@ -27,6 +27,19 @@ def _normalize_fetched_timestamp(timestamp: str) -> str:
     return parsed.isoformat()
 
 
+def _normalise_station_name(value: str) -> str:
+    return " ".join(value.strip().lower().replace("_", " ").split())
+
+
+def _station_id_from_fmi_name(value: str) -> str | None:
+    normalised = _normalise_station_name(value)
+    for station in STATIONS:
+        aliases = {_normalise_station_name(station.fmi_place), *(_normalise_station_name(alias) for alias in station.fmi_name_aliases)}
+        if normalised in aliases:
+            return station.station_id
+    return None
+
+
 def parse_fmi_response(xml_text: str, fetched_at: dt.datetime) -> list[dict[str, object]]:
     namespace = {
         "wml2": "http://www.opengis.net/waterml/2.0",
@@ -35,13 +48,11 @@ def parse_fmi_response(xml_text: str, fetched_at: dt.datetime) -> list[dict[str,
     }
     root = ET.fromstring(xml_text)
     records: list[dict[str, object]] = []
-    fmi_place_to_station = {station.fmi_place: station.station_id for station in STATIONS}
-
     for member in root.findall("wfs:member", namespace):
         place_name = member.find(".//gml:name", namespace)
         if place_name is None or place_name.text is None:
             continue
-        station_id = fmi_place_to_station.get(place_name.text.strip())
+        station_id = _station_id_from_fmi_name(place_name.text)
         if station_id is None:
             continue
 
@@ -88,6 +99,50 @@ def fetch_weather_records(
     response.raise_for_status()
     fetched_at = dt.datetime.now(dt.timezone.utc)
     return parse_fmi_response(response.text, fetched_at=fetched_at)
+
+
+def iter_date_ranges(
+    *,
+    start_time: dt.datetime,
+    end_time: dt.datetime,
+    step: dt.timedelta,
+) -> list[tuple[dt.datetime, dt.datetime]]:
+    ranges: list[tuple[dt.datetime, dt.datetime]] = []
+    cursor = start_time
+    while cursor < end_time:
+        chunk_end = min(cursor + step, end_time)
+        ranges.append((cursor, chunk_end))
+        cursor = chunk_end
+    return ranges
+
+
+def fetch_weather_records_for_range(
+    *,
+    start_time: dt.datetime,
+    end_time: dt.datetime,
+    chunk_hours: int = 24 * 14,
+    session: requests.Session | None = None,
+) -> list[dict[str, object]]:
+    records: list[dict[str, object]] = []
+    seen_keys: set[tuple[str, str]] = set()
+    for chunk_start, chunk_end in iter_date_ranges(
+        start_time=start_time,
+        end_time=end_time,
+        step=dt.timedelta(hours=chunk_hours),
+    ):
+        chunk_records = fetch_weather_records(
+            start_time=chunk_start,
+            end_time=chunk_end,
+            session=session,
+        )
+        for record in chunk_records:
+            key = (str(record["station_id"]), str(record["observed_at"]))
+            if key in seen_keys:
+                continue
+            seen_keys.add(key)
+            records.append(record)
+    records.sort(key=lambda item: (str(item["observed_at"]), str(item["station_id"])))
+    return records
 
 
 def read_historical_weather_file(

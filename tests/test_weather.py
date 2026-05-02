@@ -27,3 +27,27 @@ def test_parse_fmi_response_extracts_records() -> None:
     assert records[0]["station_id"] == "kumpula"
     assert records[0]["rain_mm"] == 1.2
 
+
+def test_parse_fmi_response_maps_full_station_name_alias() -> None:
+    xml = """
+    <wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0"
+                           xmlns:wml2="http://www.opengis.net/waterml/2.0"
+                           xmlns:gml="http://www.opengis.net/gml/3.2">
+      <wfs:member>
+        <gml:name>Vantaa Helsinki-Vantaan lentoasema</gml:name>
+        <wml2:MeasurementTimeseries>
+          <wml2:point>
+            <wml2:MeasurementTVP>
+              <wml2:time>2026-05-01T00:00:00Z</wml2:time>
+              <wml2:value>0.8</wml2:value>
+            </wml2:MeasurementTVP>
+          </wml2:point>
+        </wml2:MeasurementTimeseries>
+      </wfs:member>
+    </wfs:FeatureCollection>
+    """
+    records = parse_fmi_response(xml, fetched_at=dt.datetime(2026, 5, 1, tzinfo=dt.timezone.utc))
+
+    assert len(records) == 1
+    assert records[0]["station_id"] == "helsinki-vantaa"
+    assert records[0]["rain_mm"] == 0.8

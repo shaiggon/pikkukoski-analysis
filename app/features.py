@@ -10,6 +10,8 @@ from app.constants import FEATURE_LAG_COUNT, FEATURE_RESAMPLE_RATE, FEATURE_ROLL
 FEATURE_SPEC_VERSION = (
     f"rain-v1-resample-{FEATURE_RESAMPLE_RATE}-lag-{FEATURE_LAG_COUNT}-rolling-{FEATURE_ROLLING_WINDOW}"
 )
+WARNING_PROBABILITY_THRESHOLD = 0.05
+POOR_PROBABILITY_THRESHOLD = 0.5
 
 
 def threshold_label_from_bacteria(enterococci: float, ecoli: float) -> str:
@@ -17,9 +19,9 @@ def threshold_label_from_bacteria(enterococci: float, ecoli: float) -> str:
 
 
 def prediction_band_from_probability(probability_bad: float) -> str:
-    if probability_bad >= 0.6:
+    if probability_bad >= POOR_PROBABILITY_THRESHOLD:
         return "poor"
-    if probability_bad >= 0.35:
+    if probability_bad >= WARNING_PROBABILITY_THRESHOLD:
         return "elevated-risk"
     return "good"
 
@@ -123,3 +125,17 @@ def build_current_feature_row(
     current = feature_frame.loc[[latest_index]].copy()
     return latest_index, current
 
+
+def build_prediction_feature_rows(
+    weather_records: list[dict[str, object]],
+    *,
+    timezone: dt.tzinfo,
+    after_feature_time_local: pd.Timestamp | None = None,
+) -> pd.DataFrame:
+    weather_frame = weather_records_to_frame(weather_records)
+    feature_frame = build_weather_feature_frame(weather_frame, timezone=timezone)
+    if feature_frame.empty:
+        return pd.DataFrame()
+    if after_feature_time_local is not None:
+        feature_frame = feature_frame[feature_frame.index > after_feature_time_local]
+    return feature_frame

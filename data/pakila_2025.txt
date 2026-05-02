@@ -1,0 +1,9 @@
+4.6.2025 Hyvä/bra/good 16,1 14 14 0 0
+24.6.2025 Huono/dålig/poor 15,4 500 820 0 0
+27.6.2025, uusinta Huono/dålig/poor 15,0 550 550 0 0
+1.7.2025, uusinta Huono/dålig/poor 15,6 790 1300 0 0
+3.7.2025, uusinta Hyvä/bra/good 17,9 230 99 0 0
+22.7.2025 Huono/dålig/poor 20,3 > 800 1300 0 0
+23.7.2025, uusinta Huono/dålig/poor 20,4 670 490 0 0
+28.7.2025, uusinta Hyvä/bra/good 22,2 290 340 0 0
+19.8.2025 Hyvä/bra/good 17,3 50 65 0 0

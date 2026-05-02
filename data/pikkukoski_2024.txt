@@ -1,3 +1,15 @@
 4.6.2024 Hyvä/bra/good 21,4 30 50 0 0
-11.6.2024 Huono/dålig/poor 16,8 470 290 0 0
-14.6.2024 Hyvä/bra/good 16,3 26 37 0 0
+11.6.2024, lisänäyte Huono/dålig/poor 16,8 470 290 0 0
+14.6.2024, uusinta Hyvä/bra/good 16,3 26 37 0 0
+20.6.2024 Hyvä/bra/good 18 39 33 0 0
+25.6.2024 Hyvä/bra/good 19,8 140 550 0 0
+2.7.2024 Hyvä/bra/good 22 80 160 0 0
+9.7.2024 Hyvä/bra/good 19,2 50 210 0 0
+17.7.2024 Hyvä/bra/good 21,3 30 190 1 0
+24.7.2024 Hyvä/bra/good 21,4 25 38 0 0
+31.7.2024 Hyvä/bra/good 20,7 18 16 0 0
+7.8.2024 Huono/dålig/poor 19 >800 >2400 0 0
+8.8.2024, uusinta Hyvä/bra/good 21,3 390 440 0 0
+14.8.2024 Hyvä/bra/good 19 130 120 0 0
+21.8.2024 Hyvä/bra/good 18,8 34 82 0 0
+27.8.2024 Hyvä/bra/good 18 70 45 0 0
