@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pikkukoski Water Quality</title>
+    <style>
+      :root {
+        --bg: #f5f1e8;
+        --ink: #18242e;
+        --accent: #0d6b78;
+        --soft: #d7e6dd;
+        --warning: #b15d2e;
+        --danger: #992b2b;
+        --good: #20603d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(13, 107, 120, 0.14), transparent 30%),
+          linear-gradient(180deg, #faf7f0 0%, var(--bg) 100%);
+      }
+
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 2rem 1rem 4rem;
+      }
+
+      .hero {
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        align-items: start;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(24, 36, 46, 0.12);
+        border-radius: 20px;
+        padding: 1.25rem;
+        box-shadow: 0 20px 40px rgba(24, 36, 46, 0.06);
+        backdrop-filter: blur(10px);
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin-top: 0;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 6vw, 4rem);
+        line-height: 0.95;
+        letter-spacing: -0.03em;
+      }
+
+      .eyebrow {
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+      }
+
+      .status {
+        font-size: 2rem;
+        margin: 0.5rem 0 0.25rem;
+      }
+
+      .status.good {
+        color: var(--good);
+      }
+
+      .status.elevated-risk {
+        color: var(--warning);
+      }
+
+      .status.poor {
+        color: var(--danger);
+      }
+
+      .metrics,
+      .history-list,
+      .rain-list {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .metric-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid rgba(24, 36, 46, 0.08);
+        padding-bottom: 0.5rem;
+      }
+
+      .metric-row:last-child {
+        border-bottom: 0;
+      }
+
+      .small {
+        font-size: 0.95rem;
+        color: rgba(24, 36, 46, 0.75);
+      }
+
+      .disclaimer {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-left: 4px solid var(--accent);
+        background: rgba(13, 107, 120, 0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <div class="card">
+          <div class="eyebrow">Predicted water quality</div>
+          <h1>Pikkukoski</h1>
+          {% if prediction %}
+            <p class="status {{ prediction.quality_label_predicted }}">{{ prediction.quality_label_predicted }}</p>
+            <p class="small">
+              Predicted at {{ prediction.predicted_at }}.
+              Bad-water probability {{ "%.0f"|format(prediction.quality_probability_bad * 100) }}%.
+            </p>
+          {% else %}
+            <p class="status">No prediction yet</p>
+            <p class="small">Run the ingestion, training, and prediction jobs first.</p>
+          {% endif %}
+          <div class="disclaimer">
+            This is a model estimate based on recent rainfall and historical measurements. It is not an official bathing advisory.
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Current signals</h2>
+          {% if prediction %}
+            <div class="metrics">
+              <div class="metric-row"><span>Predicted enterococci</span><strong>{{ "%.0f"|format(prediction.enterococci_predicted) }}</strong></div>
+              <div class="metric-row"><span>Predicted E. coli</span><strong>{{ "%.0f"|format(prediction.ecoli_predicted) }}</strong></div>
+              <div class="metric-row"><span>Latest official measurement</span><strong>{{ prediction.measured_on or "n/a" }}</strong></div>
+              <div class="metric-row"><span>Official enterococci</span><strong>{{ prediction.measured_enterococci or "n/a" }}</strong></div>
+              <div class="metric-row"><span>Official E. coli</span><strong>{{ prediction.measured_ecoli or "n/a" }}</strong></div>
+            </div>
+          {% else %}
+            <p class="small">No current prediction stored in the database.</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="hero" style="margin-top: 1.5rem;">
+        <div class="card">
+          <h2>Recent rainfall</h2>
+          <div class="rain-list">
+            {% for rain in recent_rain %}
+              <div class="metric-row">
+                <span>{{ rain.observed_at }}</span>
+                <strong>{{ "%.2f"|format(rain.rain_mm) }} mm</strong>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Prediction history</h2>
+          <div class="history-list">
+            {% for item in history %}
+              <div class="metric-row">
+                <span>{{ item.predicted_at }}</span>
+                <strong>{{ item.quality_label_predicted }} / {{ "%.0f"|format(item.quality_probability_bad * 100) }}%</strong>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+  </html>

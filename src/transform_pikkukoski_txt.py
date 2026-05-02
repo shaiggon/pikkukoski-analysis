@@ -1,5 +1,6 @@
 import pandas as pd
 from datetime import datetime
+import re
 
 """
 The pikkukoski_<year>.txt files are basically the pikkukoski part taken from these pdfs
@@ -16,16 +17,29 @@ def parse_line(line: str) -> list:
   """
   Parse one line of the txt file
   """
-  parts = line.split()
+  cleaned_line = (
+    line.strip()
+    .replace(", lisänäyte", "")
+    .replace(", uusinta", "")
+  )
+  cleaned_line = re.sub(r"([<>])\s+(\d+)", r"\1\2", cleaned_line)
+  parts = cleaned_line.split()
   date_str = parts[0]
   date = datetime.strptime(date_str, '%d.%m.%Y')
   quality = int(parts[1] == "Hyvä/bra/good")
   temperature = float(parts[2].replace(",", "."))
-  enterococci = float(parts[3])
-  ecoli = float(parts[4])
+  enterococci = parse_bacteria_value(parts[3])
+  ecoli = parse_bacteria_value(parts[4])
   blue_green_algae = int(parts[5])
   other_observations = int(parts[6])
   return [date, quality, temperature, enterococci, ecoli, blue_green_algae, other_observations]
+
+def parse_bacteria_value(token: str) -> float:
+  """
+  Normalise threshold-coded values such as "<1" and ">800" to numeric values.
+  We keep the numeric boundary to fit the existing CSV schema.
+  """
+  return float(token.lstrip("<>"))
 
 def process_file(pikkukoski_filename: str):
   """
@@ -59,6 +73,9 @@ def main():
   process_file("../data/pakila_2022.txt")
   process_file("../data/pakila_2024.txt")
   process_file("../data/tapaninvainio_2024.txt")
+  process_file("../data/pikkukoski_2025.txt")
+  process_file("../data/pakila_2025.txt")
+  process_file("../data/tapaninvainio_2025.txt")
 
 if __name__ == "__main__":
   main()
