@@ -1,50 +1,87 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Pikkukoski Water Quality</title>
+    <title>{{ copy.page_title }}</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
     <style>
       :root {
         --bg: #f5f1e8;
+        --bg-deep: #e9e0cf;
         --ink: #18242e;
+        --muted: rgba(24, 36, 46, 0.72);
         --accent: #0d6b78;
-        --soft: #d7e6dd;
+        --accent-soft: rgba(13, 107, 120, 0.12);
+        --soft: #dce8df;
+        --line: rgba(24, 36, 46, 0.1);
         --warning: #b15d2e;
         --danger: #992b2b;
         --good: #20603d;
+        --card: rgba(255, 251, 245, 0.82);
       }
 
       * {
         box-sizing: border-box;
       }
 
+      html {
+        background: var(--bg);
+      }
+
       body {
         margin: 0;
+        min-height: 100vh;
+        position: relative;
         font-family: Georgia, "Times New Roman", serif;
         color: var(--ink);
+        background: transparent;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
         background:
-          radial-gradient(circle at top left, rgba(13, 107, 120, 0.14), transparent 30%),
-          linear-gradient(180deg, #faf7f0 0%, var(--bg) 100%);
+          radial-gradient(circle at top left, rgba(13, 107, 120, 0.16), transparent 30%),
+          radial-gradient(circle at 85% 12%, rgba(177, 93, 46, 0.12), transparent 24%),
+          linear-gradient(180deg, #faf7f0 0%, var(--bg) 55%, var(--bg-deep) 100%);
+        background-repeat: no-repeat;
       }
 
       main {
-        max-width: 980px;
+        max-width: 1080px;
         margin: 0 auto;
         padding: 2rem 1rem 4rem;
       }
 
-      .hero {
+      .topbar,
+      .hero,
+      .grid {
         display: grid;
         gap: 1.5rem;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      }
+
+      .topbar {
+        grid-template-columns: 1fr auto;
         align-items: start;
+        margin-bottom: 1.5rem;
+      }
+
+      .hero,
+      .grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      }
+
+      .hero.single {
+        grid-template-columns: 1fr;
       }
 
       .card {
-        background: rgba(255, 255, 255, 0.82);
-        border: 1px solid rgba(24, 36, 46, 0.12);
-        border-radius: 20px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 24px;
         padding: 1.25rem;
         box-shadow: 0 20px 40px rgba(24, 36, 46, 0.06);
         backdrop-filter: blur(10px);
@@ -52,49 +89,116 @@
 
       h1,
       h2,
-      h3 {
+      h3,
+      p {
         margin-top: 0;
       }
 
       h1 {
-        font-size: clamp(2rem, 6vw, 4rem);
-        line-height: 0.95;
-        letter-spacing: -0.03em;
+        font-size: clamp(2.3rem, 6vw, 4.5rem);
+        line-height: 0.94;
+        letter-spacing: -0.04em;
+        margin-bottom: 0.5rem;
+      }
+
+      h2 {
+        font-size: 1.3rem;
+        margin-bottom: 0.35rem;
       }
 
       .eyebrow {
         text-transform: uppercase;
-        font-size: 0.85rem;
-        letter-spacing: 0.16em;
+        font-size: 0.8rem;
+        letter-spacing: 0.18em;
         color: var(--accent);
         margin-bottom: 0.75rem;
       }
 
+      .lede,
+      .small,
+      .caption,
+      .note {
+        color: var(--muted);
+      }
+
+      .lede {
+        font-size: 1.04rem;
+        max-width: 42rem;
+      }
+
       .status {
         font-size: 2rem;
-        margin: 0.5rem 0 0.25rem;
+        margin: 0.35rem 0 0.25rem;
       }
 
-      .status.good {
+      .status.good,
+      .dot.good,
+      .marker.good {
         color: var(--good);
+        fill: var(--good);
       }
 
-      .status.elevated-risk {
+      .status.elevated-risk,
+      .dot.elevated-risk,
+      .marker.elevated-risk {
         color: var(--warning);
+        fill: var(--warning);
       }
 
-      .status.poor {
+      .status.poor,
+      .dot.poor,
+      .marker.poor {
         color: var(--danger);
+        fill: var(--danger);
+      }
+
+      .disclaimer {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+        border-radius: 14px;
+      }
+
+      .language-switcher {
+        display: flex;
+        gap: 0.35rem;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .language-switcher span {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .language-switcher a {
+        text-decoration: none;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.72);
+        padding: 0.35rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.92rem;
+      }
+
+      .language-switcher a.active {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
       }
 
       .metrics,
-      .history-list,
-      .rain-list {
+      .micro-copy,
+      .chart-stats,
+      .threshold-list {
         display: grid;
         gap: 0.75rem;
       }
 
-      .metric-row {
+      .metric-row,
+      .stat-row {
         display: flex;
         justify-content: space-between;
         gap: 1rem;
@@ -102,85 +206,501 @@
         padding-bottom: 0.5rem;
       }
 
-      .metric-row:last-child {
+      .metric-row:last-child,
+      .stat-row:last-child {
         border-bottom: 0;
       }
 
-      .small {
-        font-size: 0.95rem;
-        color: rgba(24, 36, 46, 0.75);
+      .signal-meter {
+        margin-top: 1rem;
       }
 
-      .disclaimer {
+      .meter-track,
+      .gauge-track {
+        position: relative;
+        height: 0.85rem;
+        border-radius: 999px;
+      }
+
+      .meter-track {
+        overflow: hidden;
+        background: linear-gradient(90deg, rgba(32, 96, 61, 0.2) 0%, rgba(177, 93, 46, 0.25) 55%, rgba(153, 43, 43, 0.32) 100%);
+      }
+
+      .meter-fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        background: linear-gradient(90deg, var(--good), var(--warning), var(--danger));
+        border-radius: 999px;
+      }
+
+      .meter-threshold {
+        position: absolute;
+        top: 0.05rem;
+        bottom: 0.05rem;
+        width: 0;
+        z-index: 1;
+        border-left: 2px dashed rgba(24, 36, 46, 0.5);
+      }
+
+      .meter-labels,
+      .gauge-labels {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 0.4rem;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+
+      .meter-legend {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 0.65rem;
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+
+      .chart-shell {
         margin-top: 1rem;
+      }
+
+      .chart-frame {
+        width: 100%;
+        border-radius: 18px;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(24, 36, 46, 0.08);
+      }
+
+      svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .axis-line,
+      .grid-line {
+        stroke: rgba(24, 36, 46, 0.12);
+        stroke-width: 1;
+      }
+
+      .rain-bar {
+        fill: rgba(13, 107, 120, 0.8);
+      }
+
+      .rain-bar.zero {
+        fill: rgba(13, 107, 120, 0.24);
+      }
+
+      .history-area {
+        fill: rgba(13, 107, 120, 0.12);
+      }
+
+      .history-line {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 3;
+        stroke-linejoin: round;
+        stroke-linecap: round;
+      }
+
+      .axis-text {
+        font-size: 11px;
+        fill: rgba(24, 36, 46, 0.68);
+      }
+
+      .chart-stats {
+        margin-top: 0.75rem;
+      }
+
+      .threshold-card {
         padding: 1rem;
-        border-left: 4px solid var(--accent);
-        background: rgba(13, 107, 120, 0.08);
+        border-radius: 18px;
+        border: 1px solid rgba(24, 36, 46, 0.08);
+        background: rgba(255, 255, 255, 0.58);
+      }
+
+      .threshold-title {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .threshold-title strong {
+        display: block;
+      }
+
+      .threshold-title span {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .gauge-track {
+        overflow: visible;
+      }
+
+      .gauge-track::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        z-index: 0;
+        background:
+          linear-gradient(
+            90deg,
+            rgba(32, 96, 61, 0.22) 0%,
+            rgba(32, 96, 61, 0.22) var(--watch-stop),
+            rgba(177, 93, 46, 0.22) var(--watch-stop),
+            rgba(177, 93, 46, 0.22) var(--action-stop),
+            rgba(153, 43, 43, 0.24) var(--action-stop),
+            rgba(153, 43, 43, 0.24) 100%
+          );
+      }
+
+      .gauge-threshold {
+        position: absolute;
+        top: 0.05rem;
+        bottom: 0.05rem;
+        width: 0;
+        z-index: 1;
+        border-left: 2px dashed rgba(24, 36, 46, 0.45);
+      }
+
+      .gauge-marker {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 0.85rem;
+        z-index: 2;
+        transform: translateX(-50%);
+      }
+
+      .gauge-marker::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        border-radius: 999px;
+        background: currentColor;
+      }
+
+      .gauge-marker.official::before {
+        width: 0.85rem;
+        height: 0.85rem;
+        border: 2px solid currentColor;
+        background: rgba(255, 255, 255, 0.96);
+      }
+
+      .gauge-marker.predicted {
+        width: 0.9rem;
+      }
+
+      .gauge-marker.predicted::before {
+        width: 0.9rem;
+        height: 0.85rem;
+        clip-path: polygon(50% 0, 100% 100%, 0 100%);
+        border-top: 0;
+        border-radius: 0;
+      }
+
+      .threshold-list {
+        margin-top: 0.85rem;
+      }
+
+      .threshold-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        font-size: 0.92rem;
+      }
+
+      .note {
+        font-size: 0.88rem;
+        margin-top: 1rem;
+      }
+
+      .marker-legend {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 0.85rem;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+      }
+
+      .legend-swatch {
+        width: 0.85rem;
+        height: 0.85rem;
+        flex: 0 0 auto;
+      }
+
+      .legend-line {
+        width: 0.85rem;
+        height: 0;
+        border-top: 2px dashed rgba(24, 36, 46, 0.55);
+      }
+
+      .legend-dot {
+        border-radius: 999px;
+        border: 2px solid var(--ink);
+        background: rgba(255, 255, 255, 0.96);
+      }
+
+      .legend-triangle {
+        width: 0;
+        height: 0;
+        border-left: 0.42rem solid transparent;
+        border-right: 0.42rem solid transparent;
+        border-bottom: 0.72rem solid var(--accent);
+      }
+
+      @media (max-width: 720px) {
+        main {
+          padding-top: 1.25rem;
+        }
+
+        .topbar {
+          grid-template-columns: 1fr;
+        }
+
+        .language-switcher {
+          justify-content: flex-start;
+        }
       }
     </style>
   </head>
   <body>
     <main>
-      <section class="hero">
-        <div class="card">
-          <div class="eyebrow">Predicted water quality</div>
+      <section class="topbar">
+        <div>
+          <div class="eyebrow">{{ copy.hero_eyebrow }}</div>
           <h1>Pikkukoski</h1>
-          {% if prediction %}
-            <p class="status {{ prediction.quality_label_predicted }}">{{ prediction.quality_label_predicted }}</p>
-            <p class="small">
-              Predicted at {{ prediction.predicted_at }}.
-              Bad-water probability {{ "%.0f"|format(prediction.quality_probability_bad * 100) }}%.
-            </p>
-          {% else %}
-            <p class="status">No prediction yet</p>
-            <p class="small">Run the ingestion, training, and prediction jobs first.</p>
-          {% endif %}
-          <div class="disclaimer">
-            This is a model estimate based on recent rainfall and historical measurements. It is not an official bathing advisory.
-          </div>
+          <p class="lede">
+            {{ copy.hero_summary }}
+          </p>
         </div>
-
-        <div class="card">
-          <h2>Current signals</h2>
-          {% if prediction %}
-            <div class="metrics">
-              <div class="metric-row"><span>Predicted enterococci</span><strong>{{ "%.0f"|format(prediction.enterococci_predicted) }}</strong></div>
-              <div class="metric-row"><span>Predicted E. coli</span><strong>{{ "%.0f"|format(prediction.ecoli_predicted) }}</strong></div>
-              <div class="metric-row"><span>Latest official measurement</span><strong>{{ prediction.measured_on or "n/a" }}</strong></div>
-              <div class="metric-row"><span>Official enterococci</span><strong>{{ prediction.measured_enterococci or "n/a" }}</strong></div>
-              <div class="metric-row"><span>Official E. coli</span><strong>{{ prediction.measured_ecoli or "n/a" }}</strong></div>
-            </div>
-          {% else %}
-            <p class="small">No current prediction stored in the database.</p>
-          {% endif %}
+        <div class="language-switcher" aria-label="{{ copy.language }}">
+          <span>{{ copy.language }}</span>
+          {% for option in language_options %}
+            <a href="/?lang={{ option.code }}" class="{% if option.active %}active{% endif %}">{{ option.label }}</a>
+          {% endfor %}
         </div>
       </section>
 
-      <section class="hero" style="margin-top: 1.5rem;">
+      <section class="hero single">
         <div class="card">
-          <h2>Recent rainfall</h2>
-          <div class="rain-list">
-            {% for rain in recent_rain %}
-              <div class="metric-row">
-                <span>{{ rain.observed_at }}</span>
-                <strong>{{ "%.2f"|format(rain.rain_mm) }} mm</strong>
+          {% if prediction and localized_prediction %}
+            <p class="status {{ prediction.quality_label_predicted }}">{{ localized_prediction.quality_label_display }}</p>
+            <div class="micro-copy">
+              <p class="small">{{ localized_prediction.predicted_at_sentence }}</p>
+              <p class="small">{{ localized_prediction.bad_water_probability_sentence }}</p>
+            </div>
+            <div class="signal-meter">
+              <h2>{{ copy.model_signal }}</h2>
+              <div class="meter-track">
+                <div class="meter-threshold" style="left: calc({{ probability_thresholds.elevated_risk_pct }}% - 1px);"></div>
+                <div class="meter-threshold" style="left: calc({{ probability_thresholds.poor_pct }}% - 1px);"></div>
+                <div class="meter-fill" style="width: {{ "%.1f"|format(prediction.quality_probability_bad * 100) }}%;"></div>
               </div>
-            {% endfor %}
+              <div class="meter-labels">
+                <span>0%</span>
+                <span>50%</span>
+                <span>100%</span>
+              </div>
+              <div class="meter-legend">
+                <span class="legend-item"><span class="legend-swatch legend-line"></span>{{ copy.elevated_risk_threshold_label }} {{ "%.0f"|format(probability_thresholds.elevated_risk_pct) }}%</span>
+                <span class="legend-item"><span class="legend-swatch legend-line"></span>{{ copy.poor_threshold_label }} {{ "%.0f"|format(probability_thresholds.poor_pct) }}%</span>
+              </div>
+              <p class="note">{{ copy.confidence_explainer }}</p>
+            </div>
+          {% else %}
+            <p class="status">{{ copy.no_prediction_yet }}</p>
+            <p class="small">{{ copy.run_jobs_first }}</p>
+          {% endif %}
+          <div class="disclaimer">
+            {{ copy.disclaimer }}
+          </div>
+        </div>
+      </section>
+
+      <section class="grid" style="margin-top: 1.5rem;">
+        <div class="card">
+          <h2>{{ copy.recent_rainfall }}</h2>
+          <p class="caption">{{ copy.rainfall_caption }}</p>
+          <div class="chart-shell">
+            {% if rain_chart.has_data %}
+              <div class="chart-frame">
+                <svg viewBox="0 0 {{ rain_chart.width }} {{ rain_chart.height }}" role="img" aria-label="{{ copy.recent_rainfall }}">
+                  {% for tick in rain_chart.y_ticks %}
+                    {% set y = rain_chart.height - rain_chart.padding - ((tick / (rain_chart.y_ticks[-1] or 1)) * (rain_chart.height - rain_chart.padding * 2)) %}
+                    <line class="grid-line" x1="{{ rain_chart.padding }}" y1="{{ y }}" x2="{{ rain_chart.width - rain_chart.padding }}" y2="{{ y }}"></line>
+                    <text class="axis-text" x="0" y="{{ y + 4 }}">{{ "%.1f"|format(tick) }}</text>
+                  {% endfor %}
+                  <line class="axis-line" x1="{{ rain_chart.padding }}" y1="{{ rain_chart.height - rain_chart.padding }}" x2="{{ rain_chart.width - rain_chart.padding }}" y2="{{ rain_chart.height - rain_chart.padding }}"></line>
+                  {% for bar in rain_chart.bars %}
+                    <rect
+                      class="rain-bar{% if bar.value == 0 %} zero{% endif %}"
+                      x="{{ bar.x }}"
+                      y="{{ bar.y }}"
+                      width="{{ bar.width }}"
+                      height="{{ bar.height if bar.height > 0 else 2 }}"
+                      rx="4"
+                    >
+                      <title>{{ bar.label }}: {{ "%.2f"|format(bar.value) }} mm</title>
+                    </rect>
+                  {% endfor %}
+                </svg>
+              </div>
+              <div class="chart-stats">
+                <div class="stat-row"><span>{{ copy.last_24h_total }}</span><strong>{{ "%.2f"|format(rain_chart.summary_total) }} mm</strong></div>
+              </div>
+              {% if rain_chart.all_zero %}
+                <p class="note">{{ copy.no_rain_observed }}</p>
+              {% endif %}
+            {% else %}
+              <p class="small">{{ copy.chart_empty }}</p>
+            {% endif %}
           </div>
         </div>
 
         <div class="card">
-          <h2>Prediction history</h2>
-          <div class="history-list">
-            {% for item in history %}
-              <div class="metric-row">
-                <span>{{ item.predicted_at }}</span>
-                <strong>{{ item.quality_label_predicted }} / {{ "%.0f"|format(item.quality_probability_bad * 100) }}%</strong>
+          <h2>{{ copy.prediction_history }}</h2>
+          <p class="caption">{{ copy.history_caption }}</p>
+          <div class="chart-shell">
+            {% if history_chart.has_data %}
+              <div class="chart-frame">
+                <svg viewBox="0 0 {{ history_chart.width }} {{ history_chart.height }}" role="img" aria-label="{{ copy.prediction_history }}">
+                  {% for tick in history_chart.y_ticks %}
+                    {% set y = history_chart.padding + ((100 - tick) / 100 * (history_chart.height - history_chart.padding * 2)) %}
+                    <line class="grid-line" x1="{{ history_chart.padding }}" y1="{{ y }}" x2="{{ history_chart.width - history_chart.padding }}" y2="{{ y }}"></line>
+                    <text class="axis-text" x="0" y="{{ y + 4 }}">{{ tick }}%</text>
+                  {% endfor %}
+                  <line class="axis-line" x1="{{ history_chart.padding }}" y1="{{ history_chart.height - history_chart.padding }}" x2="{{ history_chart.width - history_chart.padding }}" y2="{{ history_chart.height - history_chart.padding }}"></line>
+                  <path class="history-area" d="{{ history_chart.area_path }}"></path>
+                  <path class="history-line" d="{{ history_chart.line_path }}"></path>
+                  {% for dot in history_chart.dots %}
+                    <circle class="dot {{ dot.status }}" cx="{{ dot.x }}" cy="{{ dot.y }}" r="5">
+                      <title>{{ dot.label }}: {{ dot.probability }}% ({{ dot.status_label }})</title>
+                    </circle>
+                  {% endfor %}
+                </svg>
               </div>
-            {% endfor %}
+              <div class="chart-stats">
+                <div class="stat-row"><span>{{ copy.latest_probability }}</span><strong>{{ "%.1f"|format(history_chart.latest_probability) }}%</strong></div>
+              </div>
+            {% else %}
+              <p class="small">{{ copy.chart_empty }}</p>
+            {% endif %}
           </div>
         </div>
+      </section>
+
+      <section class="card" style="margin-top: 1.5rem;">
+        <h2>{{ copy.thresholds }}</h2>
+        <p class="caption">{{ copy.thresholds_caption }}</p>
+        {% if threshold_gauges %}
+          <div class="grid">
+            <div class="threshold-card">
+              <div class="threshold-title">
+                <div>
+                  <strong>{{ copy.predicted_enterococci }}</strong>
+                  <span>{{ threshold_gauges.enterococci.unit }}</span>
+                </div>
+                <strong>{{ "%.0f"|format(prediction.enterococci_predicted) }}</strong>
+              </div>
+              <div
+                class="gauge-track"
+                style="--watch-stop: {{ threshold_gauges.enterococci.watch_pct }}%; --action-stop: {{ threshold_gauges.enterococci.action_pct }}%;"
+              >
+                <div class="gauge-threshold" style="left: calc({{ threshold_gauges.enterococci.watch_pct }}% - 1px);"></div>
+                <div class="gauge-threshold" style="left: calc({{ threshold_gauges.enterococci.action_pct }}% - 1px);"></div>
+                {% if threshold_gauges.enterococci.predicted_pct is not none %}
+                  <div class="gauge-marker predicted {{ prediction.quality_label_predicted }}" style="left: calc({{ threshold_gauges.enterococci.predicted_pct }}% - 1px);"></div>
+                {% endif %}
+                {% if threshold_gauges.enterococci.official_pct is not none %}
+                  <div class="gauge-marker official" style="left: calc({{ threshold_gauges.enterococci.official_pct }}% - 1px); color: var(--ink);"></div>
+                {% endif %}
+              </div>
+              <div class="gauge-labels">
+                <span>0</span>
+                <span>{{ threshold_gauges.enterococci.watch_threshold }}</span>
+                <span>{{ threshold_gauges.enterococci.action_threshold }}</span>
+                <span>{{ threshold_gauges.enterococci.max_value }}</span>
+              </div>
+              <div class="threshold-list">
+                <div class="threshold-item"><span>{{ copy.watch_band }}</span><strong>{{ threshold_gauges.enterococci.watch_threshold }}</strong></div>
+                <div class="threshold-item"><span>{{ copy.action_threshold }}</span><strong>{{ threshold_gauges.enterococci.action_threshold }}</strong></div>
+                <div class="threshold-item"><span>{{ copy.predicted_marker }}</span><strong>{{ "%.0f"|format(threshold_gauges.enterococci.predicted_value) }}</strong></div>
+                <div class="threshold-item"><span>{{ copy.official_measurement_date }}</span><strong>{{ localized_prediction.measured_on_display or copy.no_official_sample }}</strong></div>
+                <div class="threshold-item"><span>{{ copy.official_marker }}</span><strong>{% if threshold_gauges.enterococci.official_value is not none %}{{ "%.0f"|format(threshold_gauges.enterococci.official_value) }}{% else %}{{ copy.no_official_sample }}{% endif %}</strong></div>
+                <div class="threshold-item"><span>{{ copy.visible_scale_max }}</span><strong>{{ threshold_gauges.enterococci.max_value }}</strong></div>
+              </div>
+              <div class="marker-legend">
+                <span class="legend-item"><span class="legend-swatch legend-line"></span>{{ copy.threshold_legend }}</span>
+                <span class="legend-item"><span class="legend-swatch legend-triangle"></span>{{ copy.predicted_marker }}</span>
+                <span class="legend-item"><span class="legend-swatch legend-dot"></span>{{ copy.official_marker }}</span>
+              </div>
+              <p class="note">{{ copy.watch_band_note }}</p>
+            </div>
+
+            <div class="threshold-card">
+              <div class="threshold-title">
+                <div>
+                  <strong>{{ copy.predicted_ecoli }}</strong>
+                  <span>{{ threshold_gauges.ecoli.unit }}</span>
+                </div>
+                <strong>{{ "%.0f"|format(prediction.ecoli_predicted) }}</strong>
+              </div>
+              <div
+                class="gauge-track"
+                style="--watch-stop: {{ threshold_gauges.ecoli.watch_pct }}%; --action-stop: {{ threshold_gauges.ecoli.action_pct }}%;"
+              >
+                <div class="gauge-threshold" style="left: calc({{ threshold_gauges.ecoli.watch_pct }}% - 1px);"></div>
+                <div class="gauge-threshold" style="left: calc({{ threshold_gauges.ecoli.action_pct }}% - 1px);"></div>
+                {% if threshold_gauges.ecoli.predicted_pct is not none %}
+                  <div class="gauge-marker predicted {{ prediction.quality_label_predicted }}" style="left: calc({{ threshold_gauges.ecoli.predicted_pct }}% - 1px);"></div>
+                {% endif %}
+                {% if threshold_gauges.ecoli.official_pct is not none %}
+                  <div class="gauge-marker official" style="left: calc({{ threshold_gauges.ecoli.official_pct }}% - 1px); color: var(--ink);"></div>
+                {% endif %}
+              </div>
+              <div class="gauge-labels">
+                <span>0</span>
+                <span>{{ threshold_gauges.ecoli.watch_threshold }}</span>
+                <span>{{ threshold_gauges.ecoli.action_threshold }}</span>
+                <span>{{ threshold_gauges.ecoli.max_value }}</span>
+              </div>
+              <div class="threshold-list">
+                <div class="threshold-item"><span>{{ copy.watch_band }}</span><strong>{{ threshold_gauges.ecoli.watch_threshold }}</strong></div>
+                <div class="threshold-item"><span>{{ copy.action_threshold }}</span><strong>{{ threshold_gauges.ecoli.action_threshold }}</strong></div>
+                <div class="threshold-item"><span>{{ copy.predicted_marker }}</span><strong>{{ "%.0f"|format(threshold_gauges.ecoli.predicted_value) }}</strong></div>
+                <div class="threshold-item"><span>{{ copy.official_measurement_date }}</span><strong>{{ localized_prediction.measured_on_display or copy.no_official_sample }}</strong></div>
+                <div class="threshold-item"><span>{{ copy.official_marker }}</span><strong>{% if threshold_gauges.ecoli.official_value is not none %}{{ "%.0f"|format(threshold_gauges.ecoli.official_value) }}{% else %}{{ copy.no_official_sample }}{% endif %}</strong></div>
+                <div class="threshold-item"><span>{{ copy.visible_scale_max }}</span><strong>{{ threshold_gauges.ecoli.max_value }}</strong></div>
+              </div>
+              <div class="marker-legend">
+                <span class="legend-item"><span class="legend-swatch legend-line"></span>{{ copy.threshold_legend }}</span>
+                <span class="legend-item"><span class="legend-swatch legend-triangle"></span>{{ copy.predicted_marker }}</span>
+                <span class="legend-item"><span class="legend-swatch legend-dot"></span>{{ copy.official_marker }}</span>
+              </div>
+              <p class="note">{{ copy.watch_band_note }}</p>
+            </div>
+          </div>
+          <p class="note">{{ copy.threshold_source_note }}</p>
+          <p class="note">{{ copy.coastal_note }}</p>
+        {% else %}
+          <p class="small">{{ copy.chart_empty }}</p>
+        {% endif %}
       </section>
     </main>
   </body>
-  </html>
+</html>
